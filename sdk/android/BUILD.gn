@@ -41,6 +41,7 @@ if (is_android) {
       ":camera_java",
       ":default_video_codec_factory_java",
       ":environment_java",
+      ":external_audio_device_module_java",
       ":filevideo_java",
       ":hwcodecs_java",
       ":java_audio_device_module_java",
@@ -120,6 +121,7 @@ if (is_android) {
       ":default_video_codec_factory_jni",
       ":environment_jni",
       ":java_audio_device_module_jni",
+      ":external_audio_device_module_jni",
       ":peerconnection_jni",
       ":video_jni",
       "../../api:create_peerconnection_factory",
@@ -471,6 +473,21 @@ if (is_android) {
       ":generated_java_audio_jni_java",
       "../../rtc_base:base_java",
       "//third_party/androidx:androidx_annotation_annotation_java",
+    ]
+  }
+
+  # External audio device module for APP layer controlled audio capture/playback
+  rtc_android_library("external_audio_device_module_java") {
+    visibility = [ "*" ]
+    sources = [
+      "api/org/webrtc/audio/ExternalAudioDeviceModule.java",
+    ]
+
+    deps = [
+      ":audio_api_java",
+      ":base_java",
+      ":generated_external_audio_jni_java",
+      "../../rtc_base:base_java",
     ]
   }
 
@@ -1580,6 +1597,42 @@ if (current_os == "linux" || is_android) {
       "src/java/org/webrtc/audio/WebRtcAudioTrack.java",
     ]
     namespace = "webrtc::jni"
+  }
+
+  # Generated JNI for external audio device module
+  generate_jni("generated_external_audio_jni") {
+    sources = [ "api/org/webrtc/audio/ExternalAudioDeviceModule.java" ]
+    namespace = "webrtc::jni"
+  }
+
+  # JNI target for external_audio_device_module_java
+  rtc_library("external_audio_device_module_jni") {
+    visibility = [ "*" ]
+    sources = [
+      "src/jni/audio_device/external_audio_input.cc",
+      "src/jni/audio_device/external_audio_input.h",
+      "src/jni/audio_device/external_audio_output.cc",
+      "src/jni/audio_device/external_audio_output.h",
+      "src/jni/audio_device/external_audio_device_module_jni.cc",
+    ]
+
+    deps = [
+      ":audio_device_module_base",
+      ":base_jni",
+      ":generated_external_audio_jni",
+      ":native_api_jni",
+      "../../api:make_ref_counted",
+      "../../api:scoped_refptr",
+      "../../api:sequence_checker",
+      "../../api/audio:audio_device",
+      "../../api/environment",
+      "../../modules/audio_device:audio_device_buffer",
+      "../../rtc_base:checks",
+      "../../rtc_base:logging",
+      "../../rtc_base:platform_thread",
+      "../../rtc_base:timeutils",
+      "//third_party/jni_zero",
+    ]
   }
 }
 
